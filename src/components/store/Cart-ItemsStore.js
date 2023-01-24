@@ -1,19 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const cartItemState = { items: [], totalQuantity: 0 };
+const cartItemState = { items: [], totalQuantity: 0, changed: false };
 
 const cartItemsSlice = createSlice({
   name: "cartItems",
   initialState: cartItemState,
   reducers: {
-    addItemHandler(currState, actions) {
+    getCartDataFromFirebase(prevState, actions) {
+      prevState.items = actions.payload.items;
+      prevState.totalQuantity = actions.payload.totalQuantity;
+    },
+
+    addItemHandler(prevState, actions) {
       const addItem = actions.payload;
-      const existingItem = currState.items.find(
+      const existingItem = prevState.items.find(
         (item) => item.id === addItem.id
       );
-      currState.totalQuantity++;
+      prevState.totalQuantity++;
+      prevState.changed = true;
       if (!existingItem) {
-        currState.items.push({
+        prevState.items.push({
           id: addItem.id,
           title: addItem.title,
           price: addItem.price,
@@ -25,12 +31,13 @@ const cartItemsSlice = createSlice({
         existingItem.totalPrice = existingItem.totalPrice + addItem.price;
       }
     },
-    removeItemHandler(currState, actions) {
+    removeItemHandler(prevState, actions) {
       const id = actions.payload;
-      const existingItem = currState.items.find((item) => item.id === id);
-      currState.totalQuantity--;
+      const existingItem = prevState.items.find((item) => item.id === id);
+      prevState.totalQuantity--;
+      prevState.changed = true;
       if (existingItem.quantity === 1) {
-        currState.items = currState.items.filter((item) => item.id !== id);
+        prevState.items = prevState.items.filter((item) => item.id !== id);
       } else {
         existingItem.quantity--;
         existingItem.totalPrice = existingItem.totalPrice - existingItem.price;
